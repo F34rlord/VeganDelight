@@ -3,14 +3,7 @@
   "cookingtime": 200,
   "experience": 1.0,
   "recipe_book_tab": "meals",
-  "ingredients": [
-    {
-      "tag": "c:foods/soymilk"
-    },
-    {
-      "tag": "c:foods/salts"
-    }
-  ],
+  "ingredients": ["#c:foods/soymilk", "#c:foods/salts"],
   "result": {
     "id": "vegandelight:tofu"
   }

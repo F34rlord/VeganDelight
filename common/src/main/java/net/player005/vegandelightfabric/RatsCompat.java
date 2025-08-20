@@ -6,7 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
@@ -37,12 +37,13 @@ public class RatsCompat {
                 level.setBlockAndUpdate(pos, getRatsMilkCauldron().defaultBlockState());
                 level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.gameEvent(null, GameEvent.FLUID_PLACE, pos);
+                return InteractionResult.SUCCESS_SERVER;
             }
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         });
     }
 
     public static Block getRatsMilkCauldron() {
-        return BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse("rats:cauldron_milk"));
+        return BuiltInRegistries.BLOCK.get(ResourceLocation.tryParse("rats:cauldron_milk")).get().value();
     }
 }

@@ -6,17 +6,7 @@
   "cookingtime": 200,
   "experience": 1.0,
   "recipe_book_tab": "misc",
-  "ingredients": [
-    {
-      "item": "minecraft:cactus"
-    },
-    {
-      "item": "minecraft:cactus"
-    },
-    {
-      "item": "minecraft:cactus"
-    }
-  ],
+  "ingredients": ["minecraft:cactus", "minecraft:cactus", "minecraft:cactus"],
   "result": {
     "id": "minecraft:honey_bottle",
     "components": {

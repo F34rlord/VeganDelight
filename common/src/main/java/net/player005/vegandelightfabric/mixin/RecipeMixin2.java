@@ -11,13 +11,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({
-        AbstractCookingRecipe.class, ArmorDyeRecipe.class, BannerDuplicateRecipe.class,
+        ArmorDyeRecipe.class, BannerDuplicateRecipe.class,
         BookCloningRecipe.class, DecoratedPotRecipe.class,
         FireworkRocketRecipe.class, FireworkStarFadeRecipe.class, FireworkStarRecipe.class,
         MapCloningRecipe.class, MapExtendingRecipe.class, RepairItemRecipe.class,
         ShapedRecipe.class, ShapelessRecipe.class, ShieldDecorationRecipe.class,
-        ShulkerBoxColoring.class, SingleItemRecipe.class,
-        SmithingTransformRecipe.class, SmithingTrimRecipe.class, SuspiciousStewRecipe.class,
+        SingleItemRecipe.class, SmithingTransformRecipe.class, SmithingTrimRecipe.class,
         TippedArrowRecipe.class
 })
 public class RecipeMixin2 {

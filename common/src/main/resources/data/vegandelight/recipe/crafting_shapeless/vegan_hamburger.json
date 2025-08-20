@@ -2,21 +2,11 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:foods/bread"
-    },
-    {
-      "item": "vegandelight:tofu_patty"
-    },
-    {
-      "tag": "c:foods/cabbage"
-    },
-    {
-      "tag": "c:crops/tomato"
-    },
-    {
-      "tag": "c:crops/onion"
-    }
+    "#c:foods/bread",
+    "vegandelight:tofu_patty",
+    "#c:foods/cabbage",
+    "#c:crops/tomato",
+    "#c:crops/onion"
   ],
   "result": {
     "id": "farmersdelight:hamburger"

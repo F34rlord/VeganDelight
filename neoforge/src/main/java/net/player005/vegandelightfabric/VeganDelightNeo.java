@@ -85,7 +85,7 @@ public class VeganDelightNeo {
         }
 
         @Override
-        public void registerVillagerTrade(VillagerProfession profession, int level,
+        public void registerVillagerTrade(ResourceKey<VillagerProfession> profession, int level,
                                           VillagerTrades.ItemListing itemListing) {
             registeredTrades.add(new VillagerTrade(profession, level, itemListing));
         }
@@ -162,5 +162,5 @@ public class VeganDelightNeo {
         return fluidType;
     }
 
-    public record VillagerTrade(VillagerProfession profession, int level, VillagerTrades.ItemListing itemListing) { }
+    public record VillagerTrade(ResourceKey<VillagerProfession> profession, int level, VillagerTrades.ItemListing itemListing) { }
 }

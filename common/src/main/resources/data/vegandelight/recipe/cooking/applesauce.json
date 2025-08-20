@@ -6,17 +6,7 @@
   "cookingtime": 200,
   "experience": 1.0,
   "recipe_book_tab": "meals",
-  "ingredients": [
-    {
-      "item": "minecraft:apple"
-    },
-    {
-      "item": "minecraft:sugar"
-    },
-    {
-      "item": "minecraft:water_bucket"
-    }
-  ],
+  "ingredients": ["minecraft:apple", "minecraft:sugar", "minecraft:water_bucket"],
   "result": {
     "id": "vegandelight:applesauce"
   }

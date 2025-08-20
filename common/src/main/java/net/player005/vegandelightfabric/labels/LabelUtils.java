@@ -1,19 +1,27 @@
 package net.player005.vegandelightfabric.labels;
 
 import com.google.common.base.Stopwatch;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.*;
+import net.player005.vegandelightfabric.VeganDelightMod;
 import net.player005.vegandelightfabric.recipe_manipulation.RecipeModification;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vectorwing.farmersdelight.client.recipe.CookingPotRecipeDisplay;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +32,7 @@ public class LabelUtils {
 
     private static final Map<Item, VeganStatus> veganFromRecipes = new HashMap<>();
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("VeganDelight");
     public static VeganStatus isVegan(ItemStack itemStack) {
         var component = itemStack.getComponents().get(VeganDataComponents.vegan.value());
         if (component != null) return VeganStatus.fromBoolean(component);
@@ -40,8 +49,7 @@ public class LabelUtils {
         for (Item item : BuiltInRegistries.ITEM) {
             scanRecipesRecursively(item, new ArrayList<>(BuiltInRegistries.ITEM.size()));
         }
-        LoggerFactory.getLogger("VeganDelight")
-            .info("Scanned {} items for vegan recipes in {}", BuiltInRegistries.ITEM.size(), timer);
+        LOGGER.info("Scanned {} items for vegan recipes in {}", BuiltInRegistries.ITEM.size(), timer);
     }
 
     private static VeganStatus scanRecipesRecursively(final Item item, final List<Item> alreadyTraversed) {
@@ -52,7 +60,7 @@ public class LabelUtils {
         var hadNonVeganRecipes = false;
 
         for (RecipeHolder<?> recipeHolder : recipes) {
-            if (recipeNotVegan(alreadyTraversed, recipeHolder.value())) hadNonVeganRecipes = true;
+            if (recipeNotVegan(alreadyTraversed, recipeHolder)) hadNonVeganRecipes = true;
             else hadVeganRecipes = true;
         }
 
@@ -64,13 +72,13 @@ public class LabelUtils {
         return result;
     }
 
-    private static boolean recipeNotVegan(List<Item> alreadyTraversed, Recipe<?> recipe) {
-        for (var ingredient : recipe.getIngredients()) {
-            for (var itemStack : ingredient.getItems()) {
-                var vegan = isVegan(itemStack);
+    private static boolean recipeNotVegan(List<Item> alreadyTraversed, RecipeHolder<?> recipe) {
+        for (var ingredient : RecipeModification.getIngredients(recipe)) {
+            for (var itemHolder : ingredient.items().toList()) {
+                var vegan = isVegan(itemHolder.value().getDefaultInstance());
 
                 if (vegan == VeganStatus.UNKNOWN) {
-                    var unknownItem = itemStack.getItem();
+                    var unknownItem = itemHolder.value();
                     if (!alreadyTraversed.contains(unknownItem))
                         vegan = scanRecipesRecursively(unknownItem, alreadyTraversed);
                 }
@@ -125,19 +133,6 @@ public class LabelUtils {
             if (bool) return VEGAN;
             else return NOT_VEGAN;
         }
-    }
-
-    @ApiStatus.Internal
-    public static void modifyRecipeResult(Recipe<?> recipe, ItemStack result) {
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            for (ItemStack item : ingredient.getItems()) {
-                if (isVegan(item) == VeganStatus.NOT_VEGAN) {
-                    result.applyComponents(VeganDataComponents.setIsNotVegan.get());
-                    return;
-                }
-            }
-        }
-        result.applyComponents(VeganDataComponents.setIsVegan.get());
     }
 
     @ApiStatus.Internal

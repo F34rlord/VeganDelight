@@ -2,33 +2,15 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "farmersdelight:kelp_roll_slice"
-    },
-    {
-      "item": "farmersdelight:kelp_roll_slice"
-    },
-    {
-      "item": "farmersdelight:kelp_roll_slice"
-    },
-    {
-      "item": "vegandelight:smoked_tofish_roll"
-    },
-    {
-      "item": "vegandelight:smoked_tofish_roll"
-    },
-    {
-      "item": "vegandelight:smoked_tofish_roll"
-    },
-    {
-      "item": "vegandelight:tofish_roll"
-    },
-    {
-      "item": "minecraft:bowl"
-    },
-    {
-      "item": "vegandelight:tofish_roll"
-    }
+    "farmersdelight:kelp_roll_slice",
+    "farmersdelight:kelp_roll_slice",
+    "farmersdelight:kelp_roll_slice",
+    "vegandelight:smoked_tofish_roll",
+    "vegandelight:smoked_tofish_roll",
+    "vegandelight:smoked_tofish_roll",
+    "vegandelight:tofish_roll",
+    "minecraft:bowl",
+    "vegandelight:tofish_roll"
   ],
   "result": {
     "id": "farmersdelight:rice_roll_medley_block"

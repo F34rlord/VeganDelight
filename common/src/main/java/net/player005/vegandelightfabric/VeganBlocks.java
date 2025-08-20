@@ -2,6 +2,8 @@ package net.player005.vegandelightfabric;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
@@ -12,52 +14,51 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.player005.vegandelightfabric.fluids.VeganFluids;
 import vectorwing.farmersdelight.common.block.WildCropBlock;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import static net.player005.vegandelightfabric.VeganDelightMod.getPlatform;
 
 public class VeganBlocks {
 
     public static final Holder<Block> SOYBEAN_CROP =
-        register(() -> new CropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT)) {
+        register((props) -> new CropBlock(props) {
             @Override
             protected ItemLike getBaseSeedId() {
                 return VeganItems.SOYBEAN.value();
             }
-        }, "soybean_crop", false);
+        }, BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT), "soybean_crop", false);
 
     public static final Holder<Block> WILD_SOYBEAN = register(
-        () -> new WildCropBlock(MobEffects.DAMAGE_BOOST, 12, BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM)),
+        (props) -> new WildCropBlock(MobEffects.STRENGTH, 12, props), BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM),
         "wild_soybean", true
     );
 
     public static final Holder<Block> POTTED_WILD_SOYBEAN = register(
-        () -> new FlowerPotBlock(WILD_SOYBEAN.value(), BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM)),
+        (props) -> new FlowerPotBlock(WILD_SOYBEAN.value(), props), BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM),
         "potted_wild_soybean", false
     );
 
     public static final Holder<Block> SOYBEAN_BAG = register(
-        () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL)),
+        Block::new, BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL),
         "soybean_bag", true
     );
 
     public static final Holder<LiquidBlock> SOYMILK = register(
-        () -> new LiquidBlock(VeganFluids.SOYMILK.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)) { },
-        "soymilk", false
-    );
+        properties -> new LiquidBlock(VeganFluids.SOYMILK.get(), properties) {}, BlockBehaviour.Properties.ofFullCopy(Blocks.WATER),
+        "soymilk", false);
 
     public static final Holder<LiquidBlock> APPLESAUCE = register(
-        () -> new LiquidBlock(VeganFluids.APPLESAUCE.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)) { },
+            properties -> new LiquidBlock(VeganFluids.APPLESAUCE.get(), properties) {}, BlockBehaviour.Properties.ofFullCopy(Blocks.WATER),
         "applesauce", false);
 
-    public static <T extends Block> Holder<T> register(Supplier<T> block, String name, boolean registerItem) {
+    public static <T extends Block> Holder<T> register(Function<BlockBehaviour.Properties, T> block, BlockBehaviour.Properties properties, String name, boolean registerItem) {
         ResourceLocation id = ResourceLocation.tryBuild(VeganDelightMod.modID, name);
         assert id != null;
-
-        var holder = getPlatform().register(BuiltInRegistries.BLOCK, id, block);
+        properties.setId(ResourceKey.create(Registries.BLOCK, id));
+        var holder = getPlatform().register(BuiltInRegistries.BLOCK, id, () -> block.apply(properties));
 
         if (registerItem)
-            getPlatform().register(BuiltInRegistries.ITEM, id, () -> new BlockItem(holder.value(), new Item.Properties()));
+            getPlatform().register(BuiltInRegistries.ITEM, id, () -> new BlockItem(holder.value(), new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id))));
 
         return holder;
     }

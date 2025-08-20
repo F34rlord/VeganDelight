@@ -6,7 +6,6 @@
   "mixins": [
     "ItemStackMixin",
     "EntityMixin",
-    "RecipeMixin",
     "RecipeMixin2"
   ],
   "client": [],

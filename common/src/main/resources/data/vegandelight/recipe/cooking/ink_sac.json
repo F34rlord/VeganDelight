@@ -3,14 +3,7 @@
   "cookingtime": 600,
   "experience": 1.0,
   "recipe_book_tab": "misc",
-  "ingredients": [
-    {
-      "item": "minecraft:coal"
-    },
-    {
-      "item": "minecraft:dried_kelp"
-    }
-  ],
+  "ingredients": ["minecraft:coal", "minecraft:dried_kelp"],
   "result": {
     "id": "minecraft:ink_sac"
   }

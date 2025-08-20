@@ -39,7 +39,7 @@ public interface VeganDelightPlatform {
         return BiomeTags.IS_OVERWORLD;
     }
 
-    void registerVillagerTrade(VillagerProfession profession, int level, VillagerTrades.ItemListing itemListing);
+    void registerVillagerTrade(ResourceKey<VillagerProfession> profession, int level, VillagerTrades.ItemListing itemListing);
 
     void registerBiomeModifier(float minTemp, float maxTemp, TagKey<Biome> allowed, TagKey<Biome> denied,
                                GenerationStep.Decoration step, ResourceKey<PlacedFeature> modifier);

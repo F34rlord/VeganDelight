@@ -6,21 +6,22 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.slf4j.Logger;
 
 import java.util.Map;
 
-public class RecipeModifierManager extends SimpleJsonResourceReloadListener {
+public class RecipeModifierManager extends SimpleJsonResourceReloadListener<JsonElement> {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Logger LOGGER = LogUtils.getLogger();
-
+    private static final String folder = "recipe_modifiers";
     public RecipeModifierManager() {
-        super(GSON, "recipe_modifiers");
+        super(ExtraCodecs.JSON, FileToIdConverter.json(folder));
     }
 
     @Override

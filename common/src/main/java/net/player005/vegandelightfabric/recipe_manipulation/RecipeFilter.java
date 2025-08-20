@@ -36,7 +36,7 @@ public interface RecipeFilter {
      */
     static RecipeFilter acceptsIngredient(ItemStack item) {
         return (recipe, registryAccess) -> {
-            for (var ingredient : recipe.value().getIngredients())
+            for (var ingredient : RecipeModification.getIngredients(recipe))
                 if (ingredient.test(item)) return true;
             return false;
         };
@@ -46,14 +46,14 @@ public interface RecipeFilter {
      * Returns a recipe filter that filters for recipes that create the given result item.
      */
     static RecipeFilter resultItemIs(Item item) {
-        return (recipe, registryAccess) -> recipe.value().getResultItem(registryAccess).is(item);
+        return (recipe, registryAccess) -> RecipeModification.getResult(recipe).is(item);
     }
 
     /**
      * Returns a recipe filter that filters for recipes that create a result item contained in the given tag.
      */
     static RecipeFilter resultItemIs(TagKey<Item> itemTag) {
-        return (recipe, registryAccess) -> recipe.value().getResultItem(registryAccess).is(itemTag);
+        return (recipe, registryAccess) -> RecipeModification.getResult(recipe).is(itemTag);
     }
 
     /**

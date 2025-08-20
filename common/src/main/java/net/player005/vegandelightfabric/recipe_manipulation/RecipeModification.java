@@ -3,18 +3,31 @@ package net.player005.vegandelightfabric.recipe_manipulation;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vectorwing.farmersdelight.common.crafting.CookingPotRecipe;
+import vectorwing.farmersdelight.common.crafting.CuttingBoardRecipe;
+import vectorwing.farmersdelight.common.crafting.DoughRecipe;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -33,7 +46,7 @@ public abstract class RecipeModification {
     private static final NonNullList<Consumer<RecipeHolder<?>>> recipeIterationCallbacks = NonNullList.create();
     private static final Map<RecipeFilter, Consumer<RecipeHolder<?>>> filteredRecipeCallbacks = new HashMap<>();
 
-    private static final NonNullList<ResourceLocation> toRemove = NonNullList.create();
+    private static final NonNullList<ResourceKey<Recipe<?>>> toRemove = NonNullList.create();
     private static NonNullList<RecipeModifier> modifiers = NonNullList.create();
 
     private static @UnknownNullability ImmutableMultimap<Item, RecipeHolder<?>> recipesByResult;
@@ -84,7 +97,7 @@ public abstract class RecipeModification {
      *
      * @param id The ResourceLocation of the recipe to remove
      */
-    public static void removeRecipe(ResourceLocation id) {
+    public static void removeRecipe(ResourceKey<Recipe<?>> id) {
         toRemove.add(id);
     }
 
@@ -107,8 +120,10 @@ public abstract class RecipeModification {
 
         var byResultBuilder = ImmutableMultimap.<Item, RecipeHolder<?>>builder();
         for (RecipeHolder<?> recipeHolder : recipeManager.getRecipes()) {
-            var result = recipeHolder.value().getResultItem(getRegistryAccess());
-            byResultBuilder.put(result.getItem(), recipeHolder);
+            ItemStack result = getResult(recipeHolder);
+            if (result != null) {
+                byResultBuilder.put(result.getItem(), recipeHolder);
+            }
         }
 
         recipesByResult = byResultBuilder.build();
@@ -142,14 +157,7 @@ public abstract class RecipeModification {
                 modifier.apply(recipeHolder.value(), helper);
                 modified++;
             }
-
-            for (ResourceLocation id : toRemove) {
-                if (recipeHolder.id().equals(id)) {
-                    // remove recipe from both maps stored in RecipeManager
-                    recipeManager.getRecipes().remove(recipeHolder); // remove from RecipeManager#byName
-                    recipeManager.getOrderedRecipes().remove(recipeHolder); // remove from RecipeManager#byType
-                }
-            }
+            recipeManager.recipes = RecipeMap.create(recipeManager.recipes.values().stream().filter(holder -> !toRemove.contains(holder.id())).toList());
         }
         logger.info("Modified {} recipes in {}", modified, timer);
     }
@@ -196,5 +204,79 @@ public abstract class RecipeModification {
      */
     public static ImmutableCollection<RecipeHolder<?>> getRecipesByResult(Item resultItem) {
         return recipesByResult.get(resultItem);
+    }
+
+    @Nullable
+    public static ItemStack getResult(RecipeHolder<?> recipeHolder) {
+
+        ItemStack result = null;
+        Recipe<?> r = recipeHolder.value();
+        try {
+            result = r.assemble(null, getRegistryAccess());
+        } catch (NullPointerException npe) {
+        }
+        if (result != null) {
+            return result;
+        }
+
+        DataResult<JsonElement> recipeJson = Recipe.CODEC.encodeStart(JsonOps.INSTANCE, r);
+        if (recipeJson.isError()) {
+            logger.info("couldn't encode recipe {} of type {}, because {}", recipeHolder.id(), r.getClass(), recipeJson.error().get().message());
+        }
+
+        JsonElement json = recipeJson.getOrThrow();
+        if (json instanceof JsonObject jsonObject) {
+            List<String> outputNames = List.of("result", "output");
+            for (String outputName : outputNames) {
+                if (jsonObject.has(outputName)) {
+                    JsonElement outputJson = jsonObject.get(outputName);
+                    DataResult<Pair<ItemStack, JsonElement>> single = ItemStack.CODEC.decode(JsonOps.INSTANCE, outputJson);
+                    if (single.isSuccess()) {
+                        return single.getOrThrow().getFirst();
+                    }
+                }
+            }
+        }
+        logger.info("can't find result for recipe {} with type {}", recipeHolder.id(), r.getClass());
+        return null;
+    }
+
+    public static List<Ingredient> getIngredients(RecipeHolder<?> recipeHolder) {
+        Recipe<?> r = recipeHolder.value();
+
+        PlacementInfo placementInfo = r.placementInfo();
+        if (placementInfo != PlacementInfo.NOT_PLACEABLE) {
+            return placementInfo.ingredients();
+        }
+        if (r instanceof CuttingBoardRecipe recipe) {
+            return List.of(recipe.getInput());
+        }
+        if (r instanceof DoughRecipe) {
+            return List.of(Ingredient.of(Items.WHEAT), Ingredient.of(Items.WATER_BUCKET));
+        }
+        DataResult<JsonElement> recipeJson = Recipe.CODEC.encodeStart(JsonOps.INSTANCE, r);
+        if (recipeJson.isError()) {
+            logger.info("couldn't encode recipe {} of type {}, because {}", recipeHolder.id(), r.getClass(), recipeJson.error().get().message());
+        }
+
+        JsonElement json = recipeJson.getOrThrow();
+        if (json instanceof JsonObject jsonObject) {
+            List<String> inputNames = List.of("input", "ingredient", "ingredients");
+            for (String inputName : inputNames) {
+                if (jsonObject.has(inputName)) {
+                    JsonElement inputJson = jsonObject.get(inputName);
+                    DataResult<Pair<Ingredient, JsonElement>> single = Ingredient.CODEC.decode(JsonOps.INSTANCE, inputJson);
+                    if (single.isSuccess()) {
+                        return List.of(single.getOrThrow().getFirst());
+                    }
+                    DataResult<Pair<List<Ingredient>, JsonElement>> list = Ingredient.CODEC.listOf().decode(JsonOps.INSTANCE, inputJson);
+                    if (list.isSuccess()) {
+                        return list.getOrThrow().getFirst();
+                    }
+                }
+            }
+        }
+        logger.info("can't find ingredients for recipe {} with type {}", recipeHolder.id(), r.getClass());
+        return List.of();
     }
 }

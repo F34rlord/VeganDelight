@@ -6,14 +6,7 @@
   "cookingtime": 200,
   "experience": 1.0,
   "recipe_book_tab": "misc",
-  "ingredients": [
-    {
-      "tag": "c:crops/soybeans"
-    },
-    {
-      "item": "minecraft:water_bucket"
-    }
-  ],
+  "ingredients": ["#c:crops/soybeans", "minecraft:water_bucket"],
   "result": {
     "id": "vegandelight:soymilk_bucket"
   }
